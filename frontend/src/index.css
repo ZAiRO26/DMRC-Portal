@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-metro-purple text-white overflow-hidden;
+  }
+}
+
+/* Custom Portal Effects */
+.portal-glow {
+  box-shadow: 0 0 50px theme('colors.metro.blue'), inset 0 0 20px theme('colors.metro.blue');
+}
+
+.portal-text-neonglow {
+  text-shadow: 0 0 10px theme('colors.metro.blue'), 0 0 20px theme('colors.metro.blue');
+}
+
+.portal-text-redglow {
+  text-shadow: 0 0 10px theme('colors.metro.red'), 0 0 20px theme('colors.metro.red');
+}
