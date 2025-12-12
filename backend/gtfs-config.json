@@ -1,0 +1,10 @@
+{
+    "agencies": [
+        {
+            "path": "./gtfs",
+            "exclude": []
+        }
+    ],
+    "sqlitePath": "./metro.db",
+    "verbose": true
+}

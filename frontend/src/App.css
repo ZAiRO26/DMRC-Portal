@@ -1,0 +1,556 @@
+/**
+ * MetroPortal PWA Styles
+ */
+
+:root {
+    --primary: #0066FF;
+    --primary-dark: #0052CC;
+    --secondary: #FFD700;
+    --danger: #FF4444;
+    --success: #00C853;
+    --bg-dark: #0a0a0f;
+    --bg-card: #1a1a24;
+    --bg-card-hover: #252532;
+    --text-primary: #ffffff;
+    --text-secondary: #a0a0b0;
+    --border-color: #2a2a3a;
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg-dark);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+}
+
+.app {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ============================================ */
+/* STATION SELECTOR */
+/* ============================================ */
+
+.station-selector {
+    padding: 2rem;
+    max-width: 500px;
+    margin: 0 auto;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.selector-header {
+    text-align: center;
+    padding: 2rem 0;
+}
+
+.selector-header .header-icon {
+    color: var(--primary);
+    margin-bottom: 1rem;
+}
+
+.selector-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.selector-header p {
+    color: var(--text-secondary);
+    margin-top: 0.5rem;
+}
+
+.gps-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    border: none;
+    border-radius: 12px;
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow);
+}
+
+.gps-button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(0, 102, 255, 0.4);
+}
+
+.gps-button:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: var(--text-secondary);
+}
+
+.divider::before,
+.divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-color);
+}
+
+.search-container {
+    position: relative;
+}
+
+.search-container input {
+    width: 100%;
+    padding: 1rem 1rem 1rem 3rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.3s;
+}
+
+.search-container input:focus {
+    border-color: var(--primary);
+}
+
+.search-container .search-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+}
+
+.dropdown {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    right: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+    z-index: 100;
+    box-shadow: var(--shadow);
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.dropdown-item:hover {
+    background: var(--bg-card-hover);
+}
+
+.nearest-list {
+    margin-top: 1rem;
+}
+
+.nearest-list h3 {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    margin-bottom: 0.75rem;
+}
+
+.nearest-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--bg-card);
+    border-radius: 12px;
+    margin-bottom: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.nearest-item:hover {
+    background: var(--bg-card-hover);
+    transform: translateX(4px);
+}
+
+.nearest-item .station-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.nearest-item .station-name {
+    font-weight: 600;
+}
+
+.nearest-item .station-distance {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.error-message {
+    padding: 1rem;
+    background: rgba(255, 68, 68, 0.1);
+    border: 1px solid var(--danger);
+    border-radius: 12px;
+    color: var(--danger);
+    text-align: center;
+}
+
+/* ============================================ */
+/* SCHEDULE BOARD */
+/* ============================================ */
+
+.schedule-board {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.schedule-board.loading {
+    justify-content: center;
+    align-items: center;
+}
+
+.loader-container {
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.loader-container p {
+    margin-top: 1rem;
+}
+
+.board-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.back-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+.back-button:hover {
+    background: var(--bg-card-hover);
+}
+
+.station-title h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.station-title .current-time {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.error-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    background: rgba(255, 68, 68, 0.1);
+    color: var(--danger);
+}
+
+.error-banner button {
+    padding: 0.5rem 1rem;
+    background: var(--danger);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+}
+
+.lines-container {
+    flex: 1;
+    padding: 1rem;
+    overflow-y: auto;
+}
+
+.line-card {
+    background: var(--bg-card);
+    border-radius: 16px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.line-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    color: white;
+    font-weight: 600;
+}
+
+.line-header .line-name {
+    flex: 1;
+}
+
+.arrivals-list {
+    padding: 0.5rem;
+}
+
+.arrival-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background: var(--bg-dark);
+    border-radius: 12px;
+    margin-bottom: 0.5rem;
+}
+
+.arrival-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.arrival-info .train-id {
+    font-weight: 600;
+    font-size: 0.875rem;
+}
+
+.arrival-info .arrival-time {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+}
+
+.arrival-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.countdown {
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--success);
+}
+
+.countdown.urgent {
+    color: var(--danger);
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.ar-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: var(--primary);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.ar-button:hover {
+    background: var(--primary-dark);
+    transform: scale(1.05);
+}
+
+.no-trains {
+    text-align: center;
+    padding: 3rem;
+    color: var(--text-secondary);
+}
+
+.no-trains p {
+    margin-top: 1rem;
+}
+
+/* ============================================ */
+/* AR VIEW */
+/* ============================================ */
+
+.ar-view {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: black;
+    z-index: 1000;
+}
+
+.ar-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.8), transparent);
+    z-index: 10;
+}
+
+.ar-header .back-button {
+    color: white;
+}
+
+.ar-header .train-info {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.ar-header .line-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.ar-header .direction {
+    color: var(--text-secondary);
+}
+
+.loading-overlay,
+.error-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-dark);
+    z-index: 5;
+    gap: 1rem;
+}
+
+.loading-overlay p,
+.error-overlay p {
+    color: var(--text-secondary);
+}
+
+.progress-bar {
+    width: 200px;
+    height: 4px;
+    background: var(--border-color);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--primary);
+    transition: width 0.3s;
+}
+
+.error-overlay button {
+    padding: 0.75rem 1.5rem;
+    background: var(--primary);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    cursor: pointer;
+}
+
+.unity-canvas {
+    display: block;
+}
+
+/* ============================================ */
+/* ANIMATIONS */
+/* ============================================ */
+
+.spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ============================================ */
+/* RESPONSIVE */
+/* ============================================ */
+
+@media (max-width: 480px) {
+    .station-selector {
+        padding: 1rem;
+    }
+
+    .selector-header h1 {
+        font-size: 1.75rem;
+    }
+
+    .arrival-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .arrival-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+}

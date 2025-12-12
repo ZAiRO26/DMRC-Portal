@@ -1,124 +1,182 @@
+/**
+ * StationSelector Component
+ * GPS-based or manual station selection
+ */
+
 import { useState, useEffect } from 'react';
-import useMetroStore from '../store/useMetroStore';
-import { fetchStations, fetchLines } from '../services/metroAPI';
-import { Search, MapPin, ChevronDown, Train } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { MapPin, Search, Navigation, Loader2, Train } from 'lucide-react';
+import { getAllStations, getNearestStations } from '../services/metroApi';
 
-export default function StationSelector({ className = "" }) {
-    const [isOpen, setIsOpen] = useState(false);
-    const [searchTerm, setSearchTerm] = useState('');
+export default function StationSelector({ onStationSelect }) {
+    const [stations, setStations] = useState([]);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [filteredStations, setFilteredStations] = useState([]);
+    const [isLocating, setIsLocating] = useState(false);
+    const [nearestStations, setNearestStations] = useState([]);
+    const [showDropdown, setShowDropdown] = useState(false);
+    const [error, setError] = useState(null);
 
-    const {
-        stations, lines, selectedStation,
-        setStations, setLines, selectStation, setError
-    } = useMetroStore();
-
+    // Load all stations on mount
     useEffect(() => {
-        const loadData = async () => {
-            try {
-                const [stationsData, linesData] = await Promise.all([
-                    fetchStations(),
-                    fetchLines()
-                ]);
-                setStations(stationsData);
-                setLines(linesData);
-            } catch (err) {
-                // Silent error for UX, store handles global error state if needed
-                console.error("Failed to load metro data", err);
-            }
-        };
-        loadData();
+        loadStations();
     }, []);
 
-    const filteredStations = stations.filter(s =>
-        s.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // Filter stations based on search query
+    useEffect(() => {
+        if (searchQuery.length > 0) {
+            const filtered = stations.filter(station =>
+                station.name.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+            setFilteredStations(filtered.slice(0, 8));
+            setShowDropdown(true);
+        } else {
+            setFilteredStations([]);
+            setShowDropdown(false);
+        }
+    }, [searchQuery, stations]);
 
-    const getLineColor = (lineCode) => {
-        return lines.find(l => l.code === lineCode)?.color || '#999';
-    };
+    async function loadStations() {
+        try {
+            const data = await getAllStations();
+            if (data.success) {
+                setStations(data.stations);
+            }
+        } catch (err) {
+            console.error('Failed to load stations:', err);
+            setError('Failed to load stations');
+        }
+    }
+
+    async function handleFindNearest() {
+        setIsLocating(true);
+        setError(null);
+
+        if (!navigator.geolocation) {
+            setError('Geolocation not supported by your browser');
+            setIsLocating(false);
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                try {
+                    const { latitude, longitude } = position.coords;
+                    const data = await getNearestStations(latitude, longitude);
+                    if (data.success) {
+                        setNearestStations(data.stations);
+                        // Auto-select the nearest one
+                        if (data.stations.length > 0) {
+                            onStationSelect(data.stations[0]);
+                        }
+                    }
+                } catch (err) {
+                    setError('Failed to find nearby stations');
+                } finally {
+                    setIsLocating(false);
+                }
+            },
+            (err) => {
+                setError('Location access denied');
+                setIsLocating(false);
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
+    }
+
+    function handleStationClick(station) {
+        setSearchQuery(station.name);
+        setShowDropdown(false);
+        onStationSelect(station);
+    }
 
     return (
-        <div className={`w-full max-w-md relative ${className}`}>
-            <motion.button
-                whileTap={{ scale: 0.98 }}
-                onClick={() => setIsOpen(!isOpen)}
-                className="w-full bg-metro-purple/80 backdrop-blur-md border border-metro-blue/30 hover:border-metro-blue/60 p-4 rounded-2xl shadow-lg flex items-center justify-between text-left transition-colors"
-            >
-                <div className="flex items-center gap-4">
-                    <div className="bg-metro-blue/10 p-2.5 rounded-xl border border-metro-blue/20">
-                        <Train className="text-metro-blue w-6 h-6" />
-                    </div>
-                    <div>
-                        <div className="text-[10px] text-metro-blue/80 uppercase tracking-[0.2em] font-bold mb-0.5">
-                            {selectedStation ? 'Boarding Station' : 'Select Station'}
-                        </div>
-                        <div className="text-white font-bold text-lg truncate">
-                            {selectedStation ? selectedStation.name : "Tap to choose..."}
-                        </div>
-                    </div>
-                </div>
-                <ChevronDown className={`text-white/50 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
-            </motion.button>
+        <div className="station-selector">
+            <div className="selector-header">
+                <Train className="header-icon" size={32} />
+                <h1>MetroPortal</h1>
+                <p>Delhi Metro AR Experience</p>
+            </div>
 
-            <AnimatePresence>
-                {isOpen && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute top-full mt-3 w-full bg-gray-900/95 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl max-h-[60vh] overflow-hidden flex flex-col z-50"
-                    >
-                        <div className="p-4 border-b border-white/10 sticky top-0 bg-gray-900/95 z-10 backdrop-blur-xl">
-                            <div className="relative group">
-                                <Search className="absolute left-3 top-3 text-gray-500 w-5 h-5 group-focus-within:text-metro-blue transition-colors" />
-                                <input
-                                    type="text"
-                                    placeholder="Search Delhi Metro..."
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-metro-blue/50 placeholder:text-gray-600 transition-all font-medium"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                    autoFocus
-                                />
+            {/* GPS Button */}
+            <button
+                className="gps-button"
+                onClick={handleFindNearest}
+                disabled={isLocating}
+            >
+                {isLocating ? (
+                    <>
+                        <Loader2 className="spin" size={20} />
+                        <span>Finding your location...</span>
+                    </>
+                ) : (
+                    <>
+                        <Navigation size={20} />
+                        <span>Find Nearest Station</span>
+                    </>
+                )}
+            </button>
+
+            {/* Divider */}
+            <div className="divider">
+                <span>or search manually</span>
+            </div>
+
+            {/* Search Box */}
+            <div className="search-container">
+                <Search className="search-icon" size={20} />
+                <input
+                    type="text"
+                    placeholder="Search station..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onFocus={() => searchQuery && setShowDropdown(true)}
+                />
+
+                {/* Dropdown */}
+                {showDropdown && filteredStations.length > 0 && (
+                    <div className="dropdown">
+                        {filteredStations.map(station => (
+                            <div
+                                key={station.id}
+                                className="dropdown-item"
+                                onClick={() => handleStationClick(station)}
+                            >
+                                <MapPin size={16} />
+                                <span>{station.name}</span>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Nearest Stations List */}
+            {nearestStations.length > 0 && (
+                <div className="nearest-list">
+                    <h3>Nearby Stations</h3>
+                    {nearestStations.map(station => (
+                        <div
+                            key={station.id}
+                            className="nearest-item"
+                            onClick={() => handleStationClick(station)}
+                        >
+                            <MapPin size={18} />
+                            <div className="station-info">
+                                <span className="station-name">{station.name}</span>
+                                <span className="station-distance">
+                                    {station.distance.toFixed(2)} km away
+                                </span>
                             </div>
                         </div>
+                    ))}
+                </div>
+            )}
 
-                        <div className="overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-                            {filteredStations.map(station => (
-                                <button
-                                    key={station.id}
-                                    onClick={() => {
-                                        selectStation(station.id);
-                                        setIsOpen(false);
-                                        setSearchTerm('');
-                                    }}
-                                    className="w-full p-3 hover:bg-white/5 rounded-xl flex items-center gap-3 group transition-all border border-transparent hover:border-white/5"
-                                >
-                                    <div
-                                        className="w-2.5 h-2.5 rounded-full shadow-[0_0_8px]"
-                                        style={{
-                                            backgroundColor: getLineColor(station.line),
-                                            boxShadow: `0 0 10px ${getLineColor(station.line)}`
-                                        }}
-                                    />
-                                    <span className={`text-left flex-1 font-medium ${selectedStation?.id === station.id ? 'text-metro-blue' : 'text-gray-300 group-hover:text-white'}`}>
-                                        {station.name}
-                                    </span>
-                                    {selectedStation?.id === station.id && (
-                                        <motion.div layoutId="selected-dot" className="w-1.5 h-1.5 bg-metro-blue rounded-full" />
-                                    )}
-                                </button>
-                            ))}
-                            {filteredStations.length === 0 && (
-                                <div className="py-8 text-center">
-                                    <p className="text-gray-500 text-sm">No stations found</p>
-                                </div>
-                            )}
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            {/* Error Display */}
+            {error && (
+                <div className="error-message">
+                    {error}
+                </div>
+            )}
         </div>
     );
 }

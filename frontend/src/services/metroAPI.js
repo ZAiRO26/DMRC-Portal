@@ -1,45 +1,51 @@
+/**
+ * Metro API Service
+ * Communicates with GTFS backend for station and schedule data
+ */
+
 import axios from 'axios';
 
-// In production, this would point to the deployed backend URL
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1/metro';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 const api = axios.create({
-    baseURL: API_BASE_URL,
-    timeout: 15000,
+    baseURL: API_BASE,
+    timeout: 10000,
+    headers: {
+        'Content-Type': 'application/json'
+    }
 });
 
-export const fetchStations = async () => {
-    try {
-        const response = await api.get('/stations');
-        return response.data.data;
-    } catch (error) {
-        console.error('API Error (fetchStations):', error);
-        throw error;
-    }
-};
+/**
+ * Get all metro stations
+ */
+export async function getAllStations() {
+    const response = await api.get('/api/stations');
+    return response.data;
+}
 
-export const fetchLines = async () => {
-    try {
-        const response = await api.get('/lines');
-        return response.data.data;
-    } catch (error) {
-        console.error('API Error (fetchLines):', error);
-        throw error;
-    }
-};
+/**
+ * Find nearest stations by GPS coordinates
+ * @param {number} lat - Latitude
+ * @param {number} lon - Longitude
+ */
+export async function getNearestStations(lat, lon) {
+    const response = await api.get('/api/stations/nearest', {
+        params: { lat, lon }
+    });
+    return response.data;
+}
 
-export const fetchArrivals = async (stationId) => {
-    try {
-        const response = await api.get(`/arrivals/${stationId}`);
-        return response.data.data;
-    } catch (error) {
-        console.error(`API Error (fetchArrivals ${stationId}):`, error);
-        throw error;
-    }
-};
+/**
+ * Get train schedule for a specific station
+ * @param {string} stationId - Station ID
+ */
+export async function getStationSchedule(stationId) {
+    const response = await api.get(`/api/station/${stationId}/schedule`);
+    return response.data;
+}
 
 export default {
-    fetchStations,
-    fetchLines,
-    fetchArrivals
+    getAllStations,
+    getNearestStations,
+    getStationSchedule
 };
